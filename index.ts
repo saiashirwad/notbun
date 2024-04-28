@@ -1,13 +1,9 @@
-import { Either } from "effect";
-import { Parser } from "./src/Parser";
+import { char, choice, many } from "./src/Parser";
 
-const hParser = Parser.char("h");
-const iParser = Parser.char("i");
+const aParser = char("a");
+const bParser = char("b");
+const manyAParser = many(aParser);
 
-const hiParser = Parser.flatMap((h: string) => {
-	return Parser.map((i: string) => h + i, iParser);
-}, hParser);
-
-const result = hiParser("ih");
+const result = choice([manyAParser, aParser, bParser]).run("aacsd");
 
 console.log(result);
