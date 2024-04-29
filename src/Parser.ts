@@ -57,22 +57,3 @@ export class Parser<A> {
 		});
 	}
 }
-
-// const char = (ch: string) =>
-// 	new Parser((input) => {
-// 		if (input.startsWith(ch)) {
-// 			return Either.right([ch, input.slice(ch.length)]);
-// 		}
-// 		return Either.left("oops");
-// 	});
-
-// const parser = Parser.Do()
-// 	.bind("x", char("x"))
-// 	.bind("y", char("y").zip(char("y")))
-// 	.bind("z", char("z").zip(char("y")));
-// // .map(({ x, y, z }) => {
-// // 	return [x, y, z] as const;
-// // });
-
-// const result = parser.run("xyyzy");
-// console.log(result);

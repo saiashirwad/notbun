@@ -19,6 +19,14 @@ export const alphabet: Parser<string> = new Parser((input) => {
 	return Either.left("Not alphabet");
 });
 
+export const number = new Parser((input) => {
+	const [first, ...rest] = input;
+	if (/^[0-9]$/.test(first)) {
+		return Either.right([first, input.slice(1)]);
+	}
+	return Either.left("not a number");
+});
+
 export const betweenChars = <T>(
 	[start, end]: [string, string],
 	parser: Parser<T>,

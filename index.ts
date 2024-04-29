@@ -1,13 +1,20 @@
 import {
 	alphabet,
-	choice,
 	betweenChars,
+	choice,
 	many,
+	many1,
 	matchString,
-	skipSpaces,
+	number,
+	regExp,
 	trimSpaces,
 } from "./src/Combinators";
 import { Parser } from "./src/Parser";
+
+const NUMBER = many1(number).map((x) => Number(x.join("")));
+
+const identifierExp = /[a-zA-Z_][a-zA-Z0-9_]*/;
+const IDENTIFIER = regExp(identifierExp);
 
 const lolParser = choice([
 	matchString("abc"),
@@ -40,7 +47,3 @@ const parser = Parser.Do()
 			),
 		),
 	);
-
-const result = parser.run("hilolcheck  (dccdccdcc)    ");
-
-console.log(JSON.stringify(result, null, 2));
