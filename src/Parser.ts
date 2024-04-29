@@ -35,3 +35,35 @@ export const ap =
 				}),
 			onLeft: (e) => Either.left(e),
 		});
+
+export const Do: Parser<{}> = pure({});
+
+// export const bind: {
+// 	<N extends string, A extends object, B>(
+// 		name: Exclude<N, keyof A>,
+// 		f: (a: A) => Parser<B>,
+// 	): (
+// 		self: Parser<A>,
+// 	) => Parser<{ [K in N | keyof A]: K extends keyof A ? A[K] : B }>;
+// 	<A extends object, N extends string, B>(
+// 		self: Parser<A>,
+// 		name: Exclude<N, keyof A>,
+// 		f: (a: A) => Parser<B>,
+// 	): Parser<{ [K in N | keyof A]: K extends keyof A ? A[K] : B }>;
+// } = dual(
+// 	3,
+// 	<A, N extends string, B>(
+// 		self: Parser<A>,
+// 		name: Exclude<N, keyof A>,
+// 		f: (a: A) => Parser<B>,
+// 	): Parser<{ [K in keyof A | N]: K extends keyof A ? A[K] : B }> =>
+// 		flatMap(self, (a) =>
+// 			map(f(a), (b) => Object.assign({}, a, { [name]: b }) as any),
+// 		),
+// );
+
+// export interface ParserTypeLambda extends TypeLambda {
+// 	readonly type: Parser<this["Target"]>;
+// }
+//
+// const adapter = Gen.adapter<ParserTypeLambda>();
