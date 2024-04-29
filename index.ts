@@ -9,7 +9,14 @@ import {
 } from "./src/Combinators";
 import { Parser } from "./src/Parser";
 
-const lolParser = choice([matchString("abc"), matchString("cde")]);
+const lolParser = choice([
+	matchString("abc"),
+	Parser.Do()
+		.bind("h", matchString("h"))
+		.bind("e", matchString("e"))
+		.bind("c", matchString("c"))
+		.bind("k", matchString("k")),
+]);
 
 const parser = Parser.Do()
 	.bind(
@@ -34,6 +41,6 @@ const parser = Parser.Do()
 		),
 	);
 
-const result = parser.run("hilolccde  (dccdccdcc)    ");
+const result = parser.run("hilolcheck  (dccdccdcc)    ");
 
 console.log(JSON.stringify(result, null, 2));
