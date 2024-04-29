@@ -12,3 +12,7 @@ export const getRest = <T>(
 		onRight: ([_, rest]) => rest,
 	});
 };
+
+export type Prettify<T> = {
+	[K in keyof T]: T[K];
+} & {};
