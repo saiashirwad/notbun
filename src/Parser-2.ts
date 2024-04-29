@@ -27,6 +27,10 @@ class Parser<A> {
 		return new Parser((input) => Either.right([a, input]));
 	};
 
+	static Do = () => {
+		return Parser.pure({});
+	};
+
 	zip<B>(parserB: Parser<B>): Parser<readonly [A, B]> {
 		return new Parser((input) =>
 			Either.match(this.run(input), {
@@ -39,6 +43,18 @@ class Parser<A> {
 			}),
 		);
 	}
+
+	bind<K extends string, B>(
+		k: K,
+		other: Parser<B> | ((a: A) => Parser<B>),
+	): Parser<A & { [k in K]: B }> {
+		return this.then((a) => {
+			const parser = other instanceof Parser ? other : other(a);
+			return parser.then((b) =>
+				Parser.pure(Object.assign({}, a, { [k.toString()]: b }) as any),
+			);
+		});
+	}
 }
 
 const char = (ch: string) =>
@@ -48,3 +64,10 @@ const char = (ch: string) =>
 		}
 		return Either.left("oops");
 	});
+
+const parser = Parser.Do()
+	.bind("x", char("x"))
+	.bind("y", char("y").zip(char("y")));
+
+const result = parser.run("xyy");
+console.log(result);
