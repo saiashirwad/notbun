@@ -43,13 +43,13 @@ export const getRest = <T>(
 	});
 };
 
-export const char =
-	(ch: string): Parser<string> =>
+export const string =
+	(str: string): Parser<string> =>
 	(input) => {
-		if (input.startsWith(ch)) {
-			return Either.right([ch, input.slice(1)]);
+		if (input.startsWith(str)) {
+			return Either.right([str, input.slice(str.length)]);
 		}
-		return Either.left(`${ch} not matched!`);
+		return Either.left(`${str} not matched!`);
 	};
 
 export const alphabet: Parser<string> = (input) => {
@@ -140,12 +140,14 @@ export const skipUntil =
 		return Either.left("wtf");
 	};
 
-// export const between =
-// 	<T>(
-// 		[start, end]: [Parser<unknown>, Parser<unknown>],
-// 		parser: Parser<T>,
-// 	): Parser<T> =>
-// 	(input) => {};
+export const between =
+	<T>(
+		[start, end]: [Parser<unknown>, Parser<unknown>],
+		parser: Parser<T>,
+	): Parser<T> =>
+	(input) => {
+		return andThen(andThen(start, skipUntil(end)), (s) => {});
+	};
 
 export const many = <T>(parser: Parser<T>) => many_<T>(0)(parser);
 export const many1 = <T>(parser: Parser<T>) => many_<T>(1)(parser);
@@ -156,10 +158,10 @@ export const skipMany1 = <T>(parser: Parser<T>) => skipMany_<T>(1)(parser);
 export const skipManyN = <T>(parser: Parser<T>, n: number) =>
 	skipMany_<T>(n)(parser);
 
-export const newLine = char("\n");
+export const newLine = string("\n");
 
 export const spaces = <T>(parser: Parser<T>) =>
-	map(andThen(skipMany(char(" ")), parser), ([_, t]) => t);
+	map(andThen(skipMany(string(" ")), parser), ([_, t]) => t);
 
 export const choice =
 	(parsers: Array<Parser<unknown>>): Parser<unknown> =>

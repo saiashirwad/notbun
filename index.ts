@@ -1,5 +1,5 @@
 import {
-	char,
+	string,
 	flatMap,
 	many,
 	andThen,
@@ -10,8 +10,8 @@ import {
 	skipUntil,
 } from "./src/Parser";
 
-const aParser = char("a");
-const bParser = char("b");
+const aParser = string("a");
+const bParser = string("b");
 const manyAParser = many(aParser);
 const word = many(alphabet);
 
@@ -29,8 +29,21 @@ function lol() {
 	// const parser_ = map(parser, (a) => {
 	// 	return "lol";
 	// });
-	const parser = map(andThen(skipUntil(word), word), ([_, s]) => s.join(""));
-	const result = parser("hithere");
+	const constParser = string("const");
+	const parser = map(
+		andThen(
+			constParser,
+			spaces(
+				many(
+					spaces(map(andThen(skipUntil(word), word), ([_, s]) => s.join(""))),
+				),
+			),
+		),
+		([_, words]) => {
+			return `Words: ${words.join(",")}`;
+		},
+	);
+	const result = parser("const hi there what the hell");
 	console.log(result);
 }
 lol();
