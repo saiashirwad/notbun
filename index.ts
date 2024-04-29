@@ -47,3 +47,6 @@ const parser = Parser.Do()
 			),
 		),
 	);
+
+const result = parser.run("hilolcheck  (dccdccdcc)    ");
+console.log(JSON.stringify(result, null, 2));
