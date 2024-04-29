@@ -109,10 +109,12 @@ export const skipMany1 = <T>(parser: Parser<T>) => skipMany_<T>(1)(parser);
 export const skipManyN = <T>(parser: Parser<T>, n: number) =>
 	skipMany_<T>(n)(parser);
 
-// export const newLine = string("\n");
+export const newLine = matchString("\n");
 
-// export const spaces = <T>(parser: Parser<T>) =>
-// 	map(ap(skipMany(matchString(" ")), parser), ([_, t]) => t);
+export const skipSpaces = <T>(parser: Parser<T>) =>
+	skipMany(matchString(" "))
+		.zip(parser)
+		.map(([_, t]) => t);
 
 // export const trimSpaces =
 // 	<T>(parser: Parser<T>): Parser<T> =>

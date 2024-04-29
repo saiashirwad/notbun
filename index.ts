@@ -1,4 +1,10 @@
-import { alphabet, betweenChars, many, matchString } from "./src/Combinators";
+import {
+	alphabet,
+	betweenChars,
+	many,
+	matchString,
+	skipSpaces,
+} from "./src/Combinators";
 import { Parser } from "./src/Parser-2";
 
 const parser = Parser.Do()
@@ -11,12 +17,14 @@ const parser = Parser.Do()
 	)
 	.bind(
 		"d",
-		betweenChars(
-			["(", ")"],
-			many(
-				Parser.Do()
-					.bind("d", matchString("d"))
-					.bind("c", many(matchString("c"))),
+		skipSpaces(
+			betweenChars(
+				["(", ")"],
+				many(
+					Parser.Do()
+						.bind("d", matchString("d"))
+						.bind("c", many(matchString("c"))),
+				),
 			),
 		),
 	);
