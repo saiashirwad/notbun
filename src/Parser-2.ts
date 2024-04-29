@@ -67,7 +67,11 @@ const char = (ch: string) =>
 
 const parser = Parser.Do()
 	.bind("x", char("x"))
-	.bind("y", char("y").zip(char("y")));
+	.bind("y", char("y").zip(char("y")))
+	.bind("z", char("z").zip(char("y")))
+	.map(({ x, y, z }) => {
+		return [x, y, z];
+	});
 
-const result = parser.run("xyy");
+const result = parser.run("xyyzy");
 console.log(result);
