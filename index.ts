@@ -1,11 +1,15 @@
 import {
 	alphabet,
+	choice,
 	betweenChars,
 	many,
 	matchString,
 	skipSpaces,
+	trimSpaces,
 } from "./src/Combinators";
-import { Parser } from "./src/Parser-2";
+import { Parser } from "./src/Parser";
+
+const lolParser = choice([matchString("abc"), matchString("cde")]);
 
 const parser = Parser.Do()
 	.bind(
@@ -13,11 +17,12 @@ const parser = Parser.Do()
 		Parser.Do()
 			.bind("a", matchString("hi"))
 			.bind("b", matchString("lol"))
-			.bind("c", alphabet),
+			.bind("c", alphabet)
+			.bind("lol", lolParser),
 	)
 	.bind(
 		"d",
-		skipSpaces(
+		trimSpaces(
 			betweenChars(
 				["(", ")"],
 				many(
@@ -29,6 +34,6 @@ const parser = Parser.Do()
 		),
 	);
 
-const result = parser.run("hilolc(dccdccdcc)");
+const result = parser.run("hilolccde  (dccdccdcc)    ");
 
 console.log(JSON.stringify(result, null, 2));

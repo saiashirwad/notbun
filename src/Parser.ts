@@ -1,69 +1,78 @@
 import { Either } from "effect";
+import type { Prettify } from "./Utils";
 
 export type ParserResult<T> = Either.Either<[T, string], string>;
-export type Parser<T> = (input: string) => ParserResult<T>;
 
-export const map =
-	<A, B>(parser: Parser<A>, f: (a: A) => B): Parser<B> =>
-	(input) =>
-		Either.match(parser(input), {
-			onRight: ([a, rest]) => Either.right([f(a), rest]),
-			onLeft: (e) => Either.left(e),
+export class Parser<A> {
+	constructor(public run: (input: string) => ParserResult<A>) {}
+
+	map<B>(f: (a: A) => B): Parser<B> {
+		return new Parser((input) =>
+			Either.match(this.run(input), {
+				onRight: ([a, rest]) => Either.right([f(a), rest]),
+				onLeft: (e) => Either.left(e),
+			}),
+		);
+	}
+
+	flatMap<B>(f: (a: A) => Parser<B>): Parser<B> {
+		return new Parser((input) =>
+			Either.match(this.run(input), {
+				onRight: ([a, rest]) => f(a).run(rest),
+				onLeft: (e) => Either.left(e),
+			}),
+		);
+	}
+
+	static pure = <A>(a: A): Parser<A> => {
+		return new Parser((input) => Either.right([a, input]));
+	};
+
+	static Do = () => {
+		return Parser.pure({});
+	};
+
+	zip<B>(parserB: Parser<B>): Parser<readonly [A, B]> {
+		return new Parser((input) =>
+			Either.match(this.run(input), {
+				onRight: ([a, rest]) =>
+					Either.match(parserB.run(rest), {
+						onLeft: (e) => Either.left(e),
+						onRight: ([b, rest]) => Either.right([[a, b], rest]),
+					}),
+				onLeft: (e) => Either.left(e),
+			}),
+		);
+	}
+
+	bind<K extends string, B>(
+		k: K,
+		other: Parser<B> | ((a: A) => Parser<B>),
+	): Parser<Prettify<A & { [k in K]: B }>> {
+		return this.flatMap((a) => {
+			const parser = other instanceof Parser ? other : other(a);
+			return parser.flatMap((b) =>
+				Parser.pure(Object.assign({}, a, { [k.toString()]: b }) as any),
+			);
 		});
+	}
+}
 
-export const flatMap =
-	<A, B>(parser: Parser<A>, f: (a: A) => Parser<B>): Parser<B> =>
-	(input) =>
-		Either.match(parser(input), {
-			onRight: ([a, rest]) => f(a)(rest),
-			onLeft: (e) => Either.left(e),
-		});
+// const char = (ch: string) =>
+// 	new Parser((input) => {
+// 		if (input.startsWith(ch)) {
+// 			return Either.right([ch, input.slice(ch.length)]);
+// 		}
+// 		return Either.left("oops");
+// 	});
 
-export const pure =
-	<T>(x: T): Parser<T> =>
-	(input) =>
-		Either.right([x, input]);
+// const parser = Parser.Do()
+// 	.bind("x", char("x"))
+// 	.bind("y", char("y").zip(char("y")))
+// 	.bind("z", char("z").zip(char("y")));
+// // .map(({ x, y, z }) => {
+// // 	return [x, y, z] as const;
+// // });
 
-export const ap =
-	<A, B>(parserA: Parser<A>, parserB: Parser<B>): Parser<readonly [A, B]> =>
-	(input) =>
-		Either.match(parserA(input), {
-			onRight: ([a, rest]) =>
-				Either.match(parserB(rest), {
-					onLeft: (e) => Either.left(e),
-					onRight: ([b, rest]) => Either.right([[a, b], rest]),
-				}),
-			onLeft: (e) => Either.left(e),
-		});
-
-export const Do: Parser<{}> = pure({});
-
-// export const bind: {
-// 	<N extends string, A extends object, B>(
-// 		name: Exclude<N, keyof A>,
-// 		f: (a: A) => Parser<B>,
-// 	): (
-// 		self: Parser<A>,
-// 	) => Parser<{ [K in N | keyof A]: K extends keyof A ? A[K] : B }>;
-// 	<A extends object, N extends string, B>(
-// 		self: Parser<A>,
-// 		name: Exclude<N, keyof A>,
-// 		f: (a: A) => Parser<B>,
-// 	): Parser<{ [K in N | keyof A]: K extends keyof A ? A[K] : B }>;
-// } = dual(
-// 	3,
-// 	<A, N extends string, B>(
-// 		self: Parser<A>,
-// 		name: Exclude<N, keyof A>,
-// 		f: (a: A) => Parser<B>,
-// 	): Parser<{ [K in keyof A | N]: K extends keyof A ? A[K] : B }> =>
-// 		flatMap(self, (a) =>
-// 			map(f(a), (b) => Object.assign({}, a, { [name]: b }) as any),
-// 		),
-// );
-
-// export interface ParserTypeLambda extends TypeLambda {
-// 	readonly type: Parser<this["Target"]>;
-// }
-//
-// const adapter = Gen.adapter<ParserTypeLambda>();
+// const result = parser.run("xyyzy");
+// console.log(result);

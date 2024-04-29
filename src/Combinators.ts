@@ -1,5 +1,5 @@
 import { Either } from "effect";
-import { Parser } from "./Parser-2";
+import { Parser } from "./Parser";
 import { getRest } from "./Utils";
 
 export const matchString = (str: string): Parser<string> =>
@@ -116,30 +116,27 @@ export const skipSpaces = <T>(parser: Parser<T>) =>
 		.zip(parser)
 		.map(([_, t]) => t);
 
-// export const trimSpaces =
-// 	<T>(parser: Parser<T>): Parser<T> =>
-// 	(input) =>
-// 		map(
-// 			ap((input) => {
-// 				const result = input.trim();
-// 				return Either.right([undefined, result]);
-// 			}, parser),
-// 			([_, t]) => t,
-// 		)(input);
+export const trimSpaces = <T>(parser: Parser<T>): Parser<T> =>
+	new Parser((input) => {
+		return new Parser((input) => {
+			const result = input.trim();
+			return Either.right([undefined, result]);
+		})
+			.zip(parser)
+			.map(([_, t]) => t)
+			.run(input);
+	});
 
-// export const choice =
-// 	(parsers: Array<Parser<unknown>>): Parser<unknown> =>
-// 	(input) => {
-// 		for (const parser of parsers) {
-// 			const result = parser(input);
-// 			if (Either.isRight(result)) {
-// 				return result;
-// 			}
-// 		}
-// 		return Either.left("None of the choices could be satisfied");
-//
-//
-// 	};
+export const choice = (parsers: Array<Parser<unknown>>): Parser<unknown> =>
+	new Parser((input) => {
+		for (const parser of parsers) {
+			const result = parser.run(input);
+			if (Either.isRight(result)) {
+				return result;
+			}
+		}
+		return Either.left("None of the choices could be satisfied");
+	});
 
 export const regExp = (exp: RegExp): Parser<string> =>
 	new Parser((input) => {
