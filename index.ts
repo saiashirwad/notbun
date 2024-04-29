@@ -2,19 +2,17 @@ import {
 	alphabet,
 	betweenChars,
 	choice,
+	digit,
 	many,
 	many1,
 	matchString,
-	number,
 	regExp,
 	trimSpaces,
 } from "./src/Combinators";
 import { Parser } from "./src/Parser";
 
-const NUMBER = many1(number).map((x) => Number(x.join("")));
-
-const identifierExp = /[a-zA-Z_][a-zA-Z0-9_]*/;
-const IDENTIFIER = regExp(identifierExp);
+const NUMBER = many1(digit).map((x) => Number(x.join("")));
+const IDENTIFIER = regExp(/[a-zA-Z_][a-zA-Z0-9_]*/);
 
 const lolParser = choice([
 	matchString("abc"),
@@ -30,7 +28,7 @@ const parser = Parser.Do()
 		"a",
 		Parser.Do()
 			.bind("a", matchString("hi"))
-			.bind("b", matchString("lol"))
+			.bind("b", (s) => matchString("lol"))
 			.bind("c", alphabet)
 			.bind("lol", lolParser),
 	)
@@ -47,6 +45,3 @@ const parser = Parser.Do()
 			),
 		),
 	);
-
-const result = parser.run("hilolcheck  (dccdccdcc)    ");
-console.log(JSON.stringify(result, null, 2));

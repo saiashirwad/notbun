@@ -10,6 +10,8 @@ export const matchString = (str: string): Parser<string> =>
 		return Either.left(`${str} not matched!`);
 	});
 
+export const char = matchString;
+
 export const alphabet: Parser<string> = new Parser((input) => {
 	const [first, ...rest] = input;
 	const expr = /^[a-zA-Z]$/;
@@ -19,13 +21,45 @@ export const alphabet: Parser<string> = new Parser((input) => {
 	return Either.left("Not alphabet");
 });
 
-export const number = new Parser((input) => {
+export const digit = new Parser((input) => {
 	const [first, ...rest] = input;
 	if (/^[0-9]$/.test(first)) {
 		return Either.right([first, input.slice(1)]);
 	}
 	return Either.left("not a number");
 });
+
+export const sepBy = <S, T>(
+	sepParser: Parser<S>,
+	parser: Parser<T>,
+	shouldTrimSpaces?: boolean,
+): Parser<T[]> => {
+	return new Parser((input) => {
+		const acc: Array<T> = [];
+		let rest = input;
+		while (true) {
+			const result = parser
+				.zip(
+					shouldTrimSpaces
+						? trimSpaces(optional(sepParser))
+						: optional(sepParser),
+				)
+				.run(rest);
+
+			if (Either.isLeft(result)) {
+				if (acc.length > 0) {
+					return Either.right([acc, rest]);
+				}
+				return Either.left("wtf");
+			}
+			const [t, s] = result.right[0];
+			acc.push(t);
+			rest = result.right[1];
+		}
+
+		return Either.right([acc, rest]);
+	});
+};
 
 export const betweenChars = <T>(
 	[start, end]: [string, string],
@@ -144,6 +178,15 @@ export const choice = (parsers: Array<Parser<unknown>>): Parser<unknown> =>
 			}
 		}
 		return Either.left("None of the choices could be satisfied");
+	});
+
+export const optional = <T>(parser: Parser<T>): Parser<T | undefined> =>
+	new Parser((input) => {
+		const result = parser.run(input);
+		if (Either.isLeft(result)) {
+			return Either.right([undefined, input]);
+		}
+		return Either.right(result.right);
 	});
 
 export const regExp = (exp: RegExp): Parser<string> =>
