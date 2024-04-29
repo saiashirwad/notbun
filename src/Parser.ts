@@ -1,5 +1,4 @@
 import { Either } from "effect";
-import { isRight } from "effect/Either";
 
 type Input = string;
 
@@ -54,11 +53,28 @@ export const string =
 
 export const alphabet: Parser<string> = (input) => {
 	const [first, ...rest] = input;
+	const expr = /^[a-zA-Z]$/;
 	if (/^[a-zA-Z]$/.test(first)) {
 		return Either.right([first, input.slice(1)]);
 	}
 	return Either.left("Not alphabet");
 };
+
+export const regExp =
+	(exp: RegExp): Parser<string> =>
+	(input) => {
+		const idx = input.search(exp);
+		if (input.search(exp) === 0) {
+			const result = input.match(exp);
+			if (!result) {
+				return Either.left("oops");
+			}
+			const first = result[0]!;
+			const rest = input.slice(first.length);
+			return Either.right([first, rest]);
+		}
+		return Either.left("oops");
+	};
 
 export const betweenChars =
 	<T>([start, end]: [string, string], parser: Parser<T>): Parser<T> =>
@@ -140,15 +156,6 @@ export const skipUntil =
 		return Either.left("wtf");
 	};
 
-export const between =
-	<T>(
-		[start, end]: [Parser<unknown>, Parser<unknown>],
-		parser: Parser<T>,
-	): Parser<T> =>
-	(input) => {
-		return andThen(andThen(start, skipUntil(end)), (s) => {});
-	};
-
 export const many = <T>(parser: Parser<T>) => many_<T>(0)(parser);
 export const many1 = <T>(parser: Parser<T>) => many_<T>(1)(parser);
 export const manyN = <T>(parser: Parser<T>, n: number) => many_<T>(n)(parser);
@@ -162,6 +169,17 @@ export const newLine = string("\n");
 
 export const spaces = <T>(parser: Parser<T>) =>
 	map(andThen(skipMany(string(" ")), parser), ([_, t]) => t);
+
+export const trimSpaces =
+	<T>(parser: Parser<T>): Parser<T> =>
+	(input) =>
+		map(
+			andThen((input) => {
+				const result = input.trim();
+				return Either.right([undefined, result]);
+			}, parser),
+			([_, t]) => t,
+		)(input);
 
 export const choice =
 	(parsers: Array<Parser<unknown>>): Parser<unknown> =>
